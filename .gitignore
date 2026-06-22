@@ -1,0 +1,22 @@
+# Connect IQ build output
+*.prg
+*.prg.debug.xml
+*.iq
+
+# Signing keys (never commit)
+private_key.der
+private_key.pem
+
+# Monkey C compiler intermediates
+gen/
+internal-mir/
+external-mir/
+
+# Local simulator / IDE app-settings exports (may include credentials)
+*-settings.json
+
+# OS / editor noise
+.DS_Store
+*~
+*.swp
+*.swo

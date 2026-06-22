@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+
+  <setting propertyKey="@Properties.domain" title="@Strings.SettingDomainTitle">
+    <settingConfig type="alphaNumeric" maxLength="64"/>
+  </setting>
+
+  <setting propertyKey="@Properties.username" title="@Strings.SettingUsernameTitle">
+    <settingConfig type="email"/>
+  </setting>
+
+  <setting propertyKey="@Properties.password" title="@Strings.SettingPasswordTitle">
+    <settingConfig type="password"/>
+  </setting>
+
+</settings>

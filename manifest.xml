@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
+  <iq:application
+      id="c8f2a1b3-4d5e-4f60-9a7b-2e3c4d5f6789"
+      entry="TurnosWebApp"
+      launcherIcon="@Drawables.LauncherIcon"
+      name="@Strings.AppName"
+      type="watch-app"
+      version="1.0.0"
+      minSdkVersion="4.2.0">
+
+    <iq:products>
+      <iq:product id="fenix7s"/>
+    </iq:products>
+
+    <iq:permissions>
+      <iq:uses-permission id="Communications"/>
+    </iq:permissions>
+
+    <iq:languages>
+      <iq:language>spa</iq:language>
+      <iq:language>eng</iq:language>
+    </iq:languages>
+  </iq:application>
+</iq:manifest>

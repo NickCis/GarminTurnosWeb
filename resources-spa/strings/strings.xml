@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<strings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+  <string id="AppName">Turnos Web</string>
+
+  <string id="SettingDomainTitle">Dominio</string>
+  <string id="SettingUsernameTitle">Usuario</string>
+  <string id="SettingPasswordTitle">Contraseña</string>
+
+  <string id="ConfigureTitle">Configuración</string>
+  <string id="ConfigureHint">Configura la cuenta\nen el reloj o en\nGarmin Connect.</string>
+  <string id="ConfigureDomain">Dominio</string>
+  <string id="ConfigureUsername">Usuario</string>
+  <string id="ConfigurePassword">Contraseña</string>
+  <string id="ConfigureContinue">Continuar</string>
+  <string id="ConfigureSet">Establecer</string>
+  <string id="ConfigureDone">Listo</string>
+  <string id="InputHint">Arriba/Abajo: carácter\nStart: agregar\nAtrás: borrar\nMenú: guardar</string>
+
+  <string id="LoadingLabel">Cargando...</string>
+  <string id="WorkoutsTitle">Entrenamientos</string>
+  <string id="TrainingsTitle">Planificación</string>
+  <string id="DetailTitle">Detalle</string>
+  <string id="EmptyWorkouts">Sin entrenamientos</string>
+  <string id="EmptyTrainings">Sin planificación</string>
+  <string id="CachedData">Datos en caché</string>
+
+  <string id="ErrorMissingCredentials">Faltan credenciales</string>
+  <string id="ErrorLoginHttp">Error de inicio HTTP $1$</string>
+  <string id="ErrorLoginWithDetail">Error de inicio ($1$): $2$</string>
+  <string id="ErrorLoginEmptyBody">Inicio: respuesta vacía</string>
+  <string id="ErrorLoginBadJson">Inicio: respuesta inválida</string>
+  <string id="ErrorLoginFailed">Inicio fallido: $1$</string>
+  <string id="ErrorLoginNoSession">Inicio: sin sesión</string>
+  <string id="ErrorNetwork">Error de red: $1$</string>
+  <string id="ErrorDataHttp">Error de datos HTTP $1$</string>
+  <string id="ErrorInvalidResponse">Respuesta inválida</string>
+  <string id="ErrorNoWorkouts">Sin workouts</string>
+  <string id="ErrorNoTrainings">Sin entrenamientos</string>
+  <string id="ErrorNoDetail">Sin detalle</string>
+  <string id="ErrorOfflineNoCache">Sin conexión ni caché</string>
+
+  <string id="MenuTitle">Opciones</string>
+  <string id="MenuRefresh">Actualizar</string>
+  <string id="MenuLogout">Cerrar sesión</string>
+  <string id="TrainingLineFormat">$1$ - $2$</string>
+</strings>
