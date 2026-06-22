@@ -23,20 +23,11 @@ module AppController {
 
   function refreshCurrent() as Void {
     if (currentScreen == SCREEN_WORKOUTS) {
-      popOneView();
-      flows().startWorkouts(false);
+      flows().startWorkouts(true);
     } else if (currentScreen == SCREEN_TRAININGS) {
-      popOneView();
-      flows().startTrainings(false);
+      flows().openTrainings(true);
     } else if (currentScreen == SCREEN_DETAIL) {
-      flows().startDetail(false);
-    }
-  }
-
-  function popOneView() as Void {
-    try {
-      WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
-    } catch (ex) {
+      flows().refreshDetail();
     }
   }
 
@@ -55,6 +46,10 @@ module AppController {
     WatchUi.switchToView(new WorkoutsView(), new WorkoutsDelegate(), WatchUi.SLIDE_LEFT);
   }
 
+  function loginFromConfigure() as Void {
+    flows().loginFromConfigure();
+  }
+
   function showAppMenu() as Void {
     if (UiState.loading) {
       return;
@@ -66,63 +61,112 @@ module AppController {
 
 class FlowCoordinator {
 
-  function startWorkouts(withLogin as Boolean) as Void {
-    AppController.setScreen(AppController.SCREEN_WORKOUTS);
-    UiState.setLoading(true);
-    WatchUi.requestUpdate();
-    if (withLogin || !SessionStore.hasSession()) {
-      TurnosApi.login(method(:afterLoginForWorkouts));
-    } else {
-      fetchPanel();
+  function loginFromConfigure() as Void {
+    if (!Credentials.hasAll()) {
+      UiState.setError(L10n.t(Rez.Strings.ErrorMissingCredentials));
+      WatchUi.requestUpdate();
+      return;
     }
+    UiState.setLoading(true);
+    UiState.resetError();
+    WatchUi.switchToView(new WorkoutsView(), new WorkoutsBootstrapDelegate(), WatchUi.SLIDE_LEFT);
+    TurnosApi.login(method(:afterConfigureLogin));
   }
 
-  function startTrainings(withLogin as Boolean) as Void {
+  function afterConfigureLogin(args as Lang.Array) as Void {
+    if (!handleLoginResult(args)) {
+      WatchUi.requestUpdate();
+      return;
+    }
+    AppController.openMainAfterLogin();
+  }
+
+  function startWorkouts(forceRefresh as Boolean) as Void {
+    AppController.setScreen(AppController.SCREEN_WORKOUTS);
+    if (!SessionStore.hasSession()) {
+      UiState.setError(L10n.t(Rez.Strings.ErrorNoSession));
+      WatchUi.requestUpdate();
+      return;
+    }
+    UiState.setLoading(true);
+    WatchUi.requestUpdate();
+    fetchPanel();
+  }
+
+  function openTrainings(forceRefresh as Boolean) as Void {
     AppController.setScreen(AppController.SCREEN_TRAININGS);
     if (AppState.selectedWorkout == null) {
       return;
     }
+    if (!SessionStore.hasSession()) {
+      UiState.setError(L10n.t(Rez.Strings.ErrorNoSession));
+      WatchUi.requestUpdate();
+      return;
+    }
+    var wid = AppState.workoutId(AppState.selectedWorkout);
+    if (forceRefresh) {
+      UiState.setLoading(true);
+      WatchUi.requestUpdate();
+      fetchTrainings();
+      return;
+    }
+    var cached = CacheStore.getTrainings(wid);
+    if (cached != null && cached.size() > 0) {
+        AppState.trainings = cached;
+        UiState.setReady(true);
+        WatchUi.requestUpdate();
+      ItemListFactory.pushTrainingsList();
+      return;
+    }
+    AppState.trainings = [] as Lang.Array;
+    AppState.selectedTraining = null;
+    WatchUi.pushView(new TrainingsView(), new TrainingsDelegate(), WatchUi.SLIDE_LEFT);
     UiState.setLoading(true);
     WatchUi.requestUpdate();
-    if (withLogin || !SessionStore.hasSession()) {
-      TurnosApi.login(method(:afterLoginForTrainings));
-    } else {
-      fetchTrainings();
-    }
+    fetchTrainings();
   }
 
-  function startDetail(withLogin as Boolean) as Void {
+  function openDetail(forceRefresh as Boolean) as Void {
     AppController.setScreen(AppController.SCREEN_DETAIL);
     if (AppState.selectedTraining == null) {
       return;
     }
+    if (!SessionStore.hasSession()) {
+      UiState.setError(L10n.t(Rez.Strings.ErrorNoSession));
+      WatchUi.requestUpdate();
+      return;
+    }
+    var tid = AppState.trainingId(AppState.selectedTraining);
+    if (!forceRefresh) {
+      var cached = CacheStore.getPlani(tid);
+      if (cached != null) {
+        applyPlaniItem(cached, true);
+        var detailView = new TrainingDetailView();
+        WatchUi.pushView(detailView, new TrainingDetailDelegate(detailView), WatchUi.SLIDE_LEFT);
+        return;
+      }
+    }
+    var detail = new TrainingDetailView();
+    WatchUi.pushView(detail, new TrainingDetailDelegate(detail), WatchUi.SLIDE_LEFT);
     UiState.setLoading(true);
     WatchUi.requestUpdate();
-    if (withLogin || !SessionStore.hasSession()) {
-      TurnosApi.login(method(:afterLoginForDetail));
-    } else {
-      fetchPlani();
-    }
+    fetchPlani();
   }
 
-  function afterLoginForWorkouts(args as Lang.Array) as Void {
-    if (!handleLoginResult(args)) {
+  function refreshDetail() as Void {
+    AppController.setScreen(AppController.SCREEN_DETAIL);
+    if (AppState.selectedTraining == null) {
       return;
     }
-    fetchPanel();
-  }
-
-  function afterLoginForTrainings(args as Lang.Array) as Void {
-    if (!handleLoginResult(args)) {
+    if (!SessionStore.hasSession()) {
+      UiState.setError(L10n.t(Rez.Strings.ErrorNoSession));
+      WatchUi.requestUpdate();
       return;
     }
-    fetchTrainings();
-  }
-
-  function afterLoginForDetail(args as Lang.Array) as Void {
-    if (!handleLoginResult(args)) {
-      return;
-    }
+    AppState.detailLines = [] as Lang.Array;
+    AppState.scrollOffset = 0;
+    UiState.setLoading(true);
+    WatchUi.requestUpdate();
     fetchPlani();
   }
 
@@ -171,7 +215,9 @@ class FlowCoordinator {
     if (ok && data != null && data instanceof Lang.Dictionary) {
       var workouts = TurnosApi.extractWorkouts(data as Lang.Dictionary);
       if (workouts != null && workouts.size() > 0) {
+        workouts = AppState.workoutsWithCleanLabels(workouts);
         CacheStore.savePanel(workouts);
+        CacheStore.pruneTrainingsForWorkouts(workouts);
         AppState.workouts = workouts;
         UiState.setReady(false);
         WatchUi.requestUpdate();
@@ -180,7 +226,7 @@ class FlowCoordinator {
       }
     }
     if (cached != null && cached.size() > 0) {
-      AppState.workouts = cached;
+      AppState.workouts = AppState.workoutsWithCleanLabels(cached);
       UiState.setReady(true);
       WatchUi.requestUpdate();
       openWorkoutsMenu();
@@ -216,6 +262,7 @@ class FlowCoordinator {
       var list = TurnosApi.extractTrainings(data as Lang.Dictionary);
       if (list != null && list.size() > 0) {
         CacheStore.saveTrainings(wid, list);
+        CacheStore.prunePlaniForTrainings(list);
         AppState.trainings = list;
         UiState.setReady(false);
         WatchUi.requestUpdate();
@@ -278,13 +325,22 @@ class FlowCoordinator {
   }
 
   function applyPlaniItem(item as Lang.Dictionary, cached as Boolean) as Void {
+    var tid = AppState.dictString(item, "id");
+    if (tid.length() == 0 && AppState.selectedTraining != null) {
+      tid = AppState.trainingId(AppState.selectedTraining);
+    }
     AppState.detailTitle = AppState.dictString(item, "titulo");
-    var raw = AppState.dictString(item, "detalle");
-    AppState.detailBody = HtmlUtil.cleanHtml(raw);
+    var body = HtmlUtil.cleanHtml(AppState.dictString(item, "detalle"));
+    AppState.detailBody = body;
     AppState.detailLines = [] as Lang.Array;
     AppState.scrollOffset = 0;
-    CacheStore.savePlani(AppState.dictString(item, "id"), item);
-    UiState.setReady(cached);
+    var stored = {
+      "id" => tid,
+      "titulo" => AppState.detailTitle,
+      "detalle" => body
+    };
+    CacheStore.savePlani(tid, stored);
+    UiState.setReady(false);
     WatchUi.requestUpdate();
   }
 
@@ -293,6 +349,6 @@ class FlowCoordinator {
   }
 
   function openTrainingsMenu() as Void {
-    ItemListFactory.openTrainingsList();
+    ItemListFactory.replaceLoadingWithTrainingsList();
   }
 }

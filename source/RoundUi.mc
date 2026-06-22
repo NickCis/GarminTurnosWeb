@@ -6,7 +6,7 @@ import Toybox.WatchUi;
 // Layout helpers for round displays (e.g. fenix 7s, 240×240).
 module RoundUi {
   const EDGE_MARGIN = 14;
-  const MENU_HINT_X = 20;
+  const MENU_HINT_X = 10;
 
   function drawMenuHint(dc as Graphics.Dc) as Void {
     dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
@@ -50,17 +50,18 @@ module RoundUi {
   }
 
   (:typecheck(false))
-  function wrapToWidth(
+  function wrapTextLines(
     dc as Graphics.Dc,
     text as String,
     font as Graphics.FontDefinition,
-    maxWidth as Number
+    maxWidth as Number,
+    maxLines as Number
   ) as Lang.Array {
-    if (text == null || text.length() == 0) {
+    if (text == null || text.length() == 0 || maxWidth <= 0 || maxLines <= 0) {
       return [] as Lang.Array;
     }
     var lineH = dc.getFontHeight(font);
-    var result = Graphics.fitTextToArea(text, font, maxWidth, lineH * 6, true);
+    var result = Graphics.fitTextToArea(text, font, maxWidth, lineH * maxLines, false);
     if (result == null) {
       return [] as Lang.Array;
     }
@@ -71,6 +72,16 @@ module RoundUi {
       return [result] as Lang.Array;
     }
     return [] as Lang.Array;
+  }
+
+  (:typecheck(false))
+  function wrapToWidth(
+    dc as Graphics.Dc,
+    text as String,
+    font as Graphics.FontDefinition,
+    maxWidth as Number
+  ) as Lang.Array {
+    return wrapTextLines(dc, text, font, maxWidth, 6);
   }
 
   (:typecheck(false))

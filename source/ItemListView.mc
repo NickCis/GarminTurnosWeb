@@ -9,7 +9,7 @@ module ListUi {
   const TICK_MS = 33;
   const KIND_HEADER = "header";
   const KIND_ITEM = "item";
-  const TEXT_LEFT = 32;
+  const TEXT_LEFT = 42;
 
   function headerEntry(text as String) as Lang.Dictionary {
     return {
@@ -36,10 +36,6 @@ module ListUi {
 }
 
 class ItemListView extends WatchUi.View {
-  const VISIBLE_ROWS = 3;
-  const CENTER_ROW = 1;
-  const BAR_GAP = 6;
-  const BAR_WIDTH = 3;
 
   var _title as String;
   var _entries as Lang.Array;
@@ -57,10 +53,8 @@ class ItemListView extends WatchUi.View {
     _entries = entries;
     _emptyMsg = emptyMsg;
     _style = style;
-    if (_style == ListUi.STYLE_TRAININGS) {
-      _anim = new SlotScrollAnimator();
-      _centerIndex = minCenterIndex();
-    }
+    _anim = new SlotScrollAnimator();
+    _centerIndex = minCenterIndex();
   }
 
   function minCenterIndex() as Number {
@@ -75,10 +69,6 @@ class ItemListView extends WatchUi.View {
       return 0;
     }
     return _entries.size() - 1;
-  }
-
-  function isTrainingsList() as Boolean {
-    return _style == ListUi.STYLE_TRAININGS;
   }
 
   function getIndex() as Number {
@@ -124,14 +114,10 @@ class ItemListView extends WatchUi.View {
   }
 
   function moveSelection(delta as Number) as Void {
-    if (_style == ListUi.STYLE_TRAININGS) {
-      moveTrainingsSelection(delta);
-      return;
-    }
-    moveWorkoutsSelection(delta);
+    moveSlotSelection(delta);
   }
 
-  function moveTrainingsSelection(delta as Number) as Void {
+  function moveSlotSelection(delta as Number) as Void {
     if (_entries.size() == 0 || !canMove(delta)) {
       return;
     }
@@ -144,20 +130,6 @@ class ItemListView extends WatchUi.View {
     } else {
       _centerIndex = _pendingCenter;
       _pendingCenter = null;
-    }
-    WatchUi.requestUpdate();
-  }
-
-  function moveWorkoutsSelection(delta as Number) as Void {
-    if (_entries.size() == 0) {
-      return;
-    }
-    _centerIndex += delta;
-    if (_centerIndex < 0) {
-      _centerIndex = 0;
-    }
-    if (_centerIndex >= _entries.size()) {
-      _centerIndex = _entries.size() - 1;
     }
     WatchUi.requestUpdate();
   }
@@ -177,18 +149,6 @@ class ItemListView extends WatchUi.View {
     }
   }
 
-  function rowHeight(dc as Graphics.Dc or Null) as Number {
-    if (dc != null) {
-      return dc.getHeight() / 3;
-    }
-    return 80;
-  }
-
-  function slotCenterY(dc as Graphics.Dc, slot as Number) as Number {
-    var rh = rowHeight(dc);
-    return rh * slot + rh / 2;
-  }
-
   function entryAtIndex(idx as Number) as Lang.Dictionary or Null {
     if (idx < 0 || idx >= _entries.size()) {
       return null;
@@ -198,10 +158,6 @@ class ItemListView extends WatchUi.View {
       return e as Lang.Dictionary;
     }
     return null;
-  }
-
-  function entryAt(offset as Number) as Lang.Dictionary or Null {
-    return entryAtIndex(_centerIndex + offset);
   }
 
   function entryText(entry as Lang.Dictionary) as String {
@@ -237,168 +193,13 @@ class ItemListView extends WatchUi.View {
       return;
     }
 
-    if (_style == ListUi.STYLE_TRAININGS) {
-      drawTrainingsSlots(dc);
-    } else {
-      RoundUi.drawCenteredLine(dc, 36, _title, Graphics.FONT_SMALL, Graphics.COLOR_WHITE);
-      drawWorkoutsCarousel(dc);
-    }
-
-    if (UiState.fromCache) {
-      RoundUi.drawCenteredLine(
-        dc,
-        dc.getHeight() - 22,
-        L10n.t(Rez.Strings.CachedData),
-        Graphics.FONT_XTINY,
-        Graphics.COLOR_YELLOW
-      );
-    }
+    drawSlots(dc);
   }
 
-  function drawTrainingsSlots(dc as Graphics.Dc) as Void {
-    _rowHeight = rowHeight(dc);
+  function drawSlots(dc as Graphics.Dc) as Void {
+    _rowHeight = SlotListRender.rowHeight(dc);
     var offsetY = _anim != null ? _anim.getOffsetY() : 0;
-    var rh = rowHeight(dc);
-    var w = dc.getWidth();
-
-    for (var slot = 0; slot < VISIBLE_ROWS; slot++) {
-      var entryIdx = _centerIndex + slot - CENTER_ROW;
-      var entry = entryAtIndex(entryIdx);
-      if (entry == null) {
-        continue;
-      }
-      var y = slotCenterY(dc, slot) + offsetY;
-      if (ListUi.isHeader(entry)) {
-        drawHeaderSlot(dc, y, entryText(entry), rh);
-      } else {
-        drawTrainingSlot(dc, y, entry, rh, w);
-      }
-    }
-
-    drawFixedSelectionBar(dc, rh);
-  }
-
-  function drawFixedSelectionBar(dc as Graphics.Dc, slotH as Number) as Void {
-    var centerEntry = entryAtIndex(_centerIndex);
-    if (centerEntry == null || ListUi.isHeader(centerEntry)) {
-      return;
-    }
-    var fixedY = slotCenterY(dc, CENTER_ROW);
-    drawBar(dc, ListUi.TEXT_LEFT - BAR_GAP - BAR_WIDTH, fixedY, slotH);
-  }
-
-  function drawHeaderSlot(
-    dc as Graphics.Dc,
-    y as Number,
-    text as String,
-    slotH as Number
-  ) as Void {
-    var cx = dc.getWidth() / 2;
-
-    dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-    var fontH = dc.getFontHeight(Graphics.FONT_SMALL);
-    var textY = y - fontH / 2 - 4;
-    dc.drawText(cx, textY, Graphics.FONT_SMALL, text, Graphics.TEXT_JUSTIFY_CENTER);
-
-    var lineY = textY + fontH + 8;
-    var lineW = dc.getWidth() * 2 / 3;
-    dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-    dc.drawLine(cx - lineW / 2, lineY, cx + lineW / 2, lineY);
-  }
-
-  function drawTrainingSlot(
-    dc as Graphics.Dc,
-    y as Number,
-    entry as Lang.Dictionary,
-    slotH as Number,
-    w as Number
-  ) as Void {
-    var title = entryText(entry);
-    var fecha = entrySubtitle(entry);
-    var textX = ListUi.TEXT_LEFT;
-    var clipW = w - textX - 16;
-    var titleY = y - dc.getFontHeight(Graphics.FONT_XTINY) / 2 - 2;
-    var dateY = y + dc.getFontHeight(Graphics.FONT_SMALL) / 2 + 2;
-
-    RoundUi.drawClippedText(
-      dc, textX, titleY, clipW, slotH, title, Graphics.FONT_SMALL, Graphics.COLOR_WHITE, 0
-    );
-    if (fecha.length() > 0) {
-      RoundUi.drawClippedText(
-        dc, textX, dateY, clipW, slotH, fecha, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY, 0
-      );
-    }
-  }
-
-  function drawBar(dc as Graphics.Dc, x as Number, y as Number, slotH as Number) as Void {
-    dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-    var barH = slotH - 12;
-    if (barH < 16) {
-      barH = 16;
-    }
-    dc.fillRectangle(x, y - barH / 2, BAR_WIDTH, barH);
-  }
-
-  function drawWorkoutsCarousel(dc as Graphics.Dc) as Void {
-    var cy = RoundUi.centerY(dc);
-    var slotHeights = [0, 0, 0] as Lang.Array;
-    var offsets = [-1, 0, 1] as Lang.Array;
-    for (var r = 0; r < VISIBLE_ROWS; r++) {
-      if (entryAt(offsets[r] as Number) == null) {
-        slotHeights[r] = dc.getFontHeight(Graphics.FONT_XTINY) + 8;
-      } else if (r == CENTER_ROW) {
-        slotHeights[r] = dc.getFontHeight(Graphics.FONT_SMALL) + 8;
-      } else {
-        slotHeights[r] = dc.getFontHeight(Graphics.FONT_XTINY) + 8;
-      }
-    }
-    var h0 = slotHeights[0] as Number;
-    var h1 = slotHeights[1] as Number;
-    var h2 = slotHeights[2] as Number;
-    var rowYs = [
-      cy - h1 / 2 - h0 / 2,
-      cy,
-      cy + h1 / 2 + h2 / 2
-    ] as Lang.Array;
-
-    for (var row = 0; row < VISIBLE_ROWS; row++) {
-      var entry = entryAt(offsets[row] as Number);
-      if (entry == null) {
-        continue;
-      }
-      var isSel = row == CENTER_ROW;
-      var y = rowYs[row] as Number;
-      var text = entryText(entry);
-      if (!isSel) {
-        RoundUi.drawCenteredLine(dc, y, text, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY);
-        continue;
-      }
-      var layout = rowLayout(dc, y);
-      drawBar(dc, layout[:barX] as Number, y, slotHeights[row] as Number);
-      RoundUi.drawClippedText(
-        dc,
-        layout[:textX] as Number,
-        y,
-        layout[:clipW] as Number,
-        slotHeights[row] as Number,
-        text,
-        Graphics.FONT_SMALL,
-        Graphics.COLOR_WHITE,
-        0
-      );
-    }
-  }
-
-  function rowLayout(dc as Graphics.Dc, y as Number) as Lang.Dictionary {
-    var maxW = RoundUi.maxWidthAtY(dc, y);
-    var cx = RoundUi.centerX(dc);
-    var textX = cx - maxW / 2 + 10;
-    var barX = textX - BAR_GAP - BAR_WIDTH;
-    return {
-      :barX => barX,
-      :textX => textX,
-      :clipW => maxW - 20
-    };
+    SlotListRender.drawSlots(dc, _entries, _centerIndex, offsetY);
   }
 }
 
@@ -486,7 +287,7 @@ class WorkoutsItemListDelegate extends ItemListDelegate {
   function onWorkoutSelected(args as Lang.Array) as Void {
     var view = args[0] as ItemListView;
     var entry = view.getSelectedEntry();
-    if (entry == null) {
+    if (entry == null || ListUi.isHeader(entry)) {
       return;
     }
     var tidx = entry.get("tidx");
@@ -502,15 +303,12 @@ class WorkoutsItemListDelegate extends ItemListDelegate {
       return;
     }
     AppState.selectedWorkout = sel as Lang.Dictionary;
-    AppState.trainings = [] as Lang.Array;
     AppState.selectedTraining = null;
-    WatchUi.pushView(new TrainingsView(), new TrainingsDelegate(), WatchUi.SLIDE_LEFT);
-    AppController.flows().startTrainings(true);
+    AppController.flows().openTrainings(false);
   }
 
   function onBack() as Boolean {
-    WatchUi.popView(WatchUi.SLIDE_RIGHT);
-    return true;
+    return false;
   }
 }
 
@@ -540,8 +338,7 @@ class TrainingsItemListDelegate extends ItemListDelegate {
       return;
     }
     AppState.selectedTraining = sel as Lang.Dictionary;
-    WatchUi.pushView(new TrainingDetailView(), new TrainingDetailDelegate(), WatchUi.SLIDE_LEFT);
-    AppController.flows().startDetail(true);
+    AppController.flows().openDetail(false);
   }
 
   function onBack() as Boolean {
@@ -552,6 +349,7 @@ class TrainingsItemListDelegate extends ItemListDelegate {
 module ItemListFactory {
   function workoutEntries() as Lang.Array {
     var entries = [] as Lang.Array;
+    entries.add(ListUi.headerEntry(L10n.t(Rez.Strings.WorkoutsTitle)));
     for (var i = 0; i < AppState.workouts.size(); i++) {
       var item = AppState.workouts[i];
       if (item instanceof Lang.Dictionary) {
@@ -590,10 +388,14 @@ module ItemListFactory {
       L10n.t(Rez.Strings.EmptyWorkouts),
       ListUi.STYLE_WORKOUTS
     );
-    WatchUi.pushView(view, new WorkoutsItemListDelegate(view), WatchUi.SLIDE_LEFT);
+    WatchUi.switchToView(view, new WorkoutsItemListDelegate(view), WatchUi.SLIDE_LEFT);
   }
 
   function openTrainingsList() as Void {
+    replaceLoadingWithTrainingsList();
+  }
+
+  function pushTrainingsList() as Void {
     var view = new ItemListView(
       L10n.t(Rez.Strings.TrainingsTitle),
       trainingEntries(),
@@ -601,5 +403,13 @@ module ItemListFactory {
       ListUi.STYLE_TRAININGS
     );
     WatchUi.pushView(view, new TrainingsItemListDelegate(view), WatchUi.SLIDE_LEFT);
+  }
+
+  function replaceLoadingWithTrainingsList() as Void {
+    try {
+      WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+    } catch (ex) {
+    }
+    pushTrainingsList();
   }
 }

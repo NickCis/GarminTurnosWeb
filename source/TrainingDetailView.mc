@@ -2,13 +2,12 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-module DetailUi {
-  const LINES_PER_PAGE = 5;
-}
-
 class TrainingDetailView extends WatchUi.View {
 
-  var _linesCacheKey as String = "";
+  var _linesKey as String = "";
+  var _bodyTop as Number = 68;
+  var _lineH as Number = 14;
+  var _maxScrollOffset as Number = 0;
 
   function initialize() {
     View.initialize();
@@ -17,7 +16,6 @@ class TrainingDetailView extends WatchUi.View {
   function onUpdate(dc as Graphics.Dc) as Void {
     dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
     dc.clear();
-    var h = dc.getHeight();
 
     RoundUi.drawMenuHint(dc);
 
@@ -28,188 +26,178 @@ class TrainingDetailView extends WatchUi.View {
     }
 
     if (UiState.error != null) {
-      RoundUi.drawCenteredLine(dc, h / 2, UiState.error, Graphics.FONT_SMALL, Graphics.COLOR_RED);
+      RoundUi.drawCenteredLine(
+        dc,
+        RoundUi.centerY(dc),
+        UiState.error,
+        Graphics.FONT_SMALL,
+        Graphics.COLOR_RED
+      );
       return;
     }
 
-    var titleY = 40;
-    if (AppState.detailTitle.length() > 0) {
-      RoundUi.drawCenteredLine(
-        dc,
-        titleY,
-        AppState.detailTitle,
-        Graphics.FONT_SMALL,
-        Graphics.COLOR_WHITE
-      );
+    var titleMaxW = DetailTextLayout.maxWidthAt(dc, DetailUi.TITLE_TOP);
+    _bodyTop = drawTitleBlock(dc, titleMaxW);
+    var lines = getDisplayLines(dc, _bodyTop);
+    _lineH = DetailTextLayout.lineHeight(dc);
+    _maxScrollOffset = DetailTextLayout.maxScrollOffset(dc, lines.size(), _bodyTop, _lineH);
+
+    if (AppState.scrollOffset > _maxScrollOffset) {
+      AppState.scrollOffset = _maxScrollOffset;
     }
 
-    var lines = getDisplayLines(dc);
     var start = AppState.scrollOffset;
-    var rowH = dc.getFontHeight(Graphics.FONT_XTINY) + 4;
-    var y = 68;
-    for (var i = 0; i < DetailUi.LINES_PER_PAGE; i++) {
-      var idx = start + i;
-      if (idx >= lines.size()) {
+    var bodyBottom = dc.getHeight() - DetailUi.SAFE_BOTTOM_Y;
+    var idx = start;
+    var lastDrawn = start - 1;
+
+    while (idx < lines.size()) {
+      var lineY = _bodyTop + (idx - start) * _lineH;
+      if (lineY + _lineH > bodyBottom) {
         break;
       }
       var line = lines[idx];
       if (line instanceof String) {
-        RoundUi.drawCenteredLine(
-          dc,
-          y,
-          line as String,
-          Graphics.FONT_XTINY,
-          Graphics.COLOR_WHITE
-        );
+        drawBodyLine(dc, line as String, lineY);
+        lastDrawn = idx;
       }
-      y += rowH;
+      idx += 1;
     }
 
-    var hasMore = start + DetailUi.LINES_PER_PAGE < lines.size();
-    if (hasMore) {
-      var dotsY = h - (UiState.fromCache ? 34 : 22);
-      RoundUi.drawCenteredLine(dc, dotsY, "...", Graphics.FONT_SMALL, Graphics.COLOR_LT_GRAY);
-    }
-
-    if (UiState.fromCache) {
+    if (lastDrawn + 1 < lines.size() || start < _maxScrollOffset) {
       RoundUi.drawCenteredLine(
         dc,
-        h - 20,
-        L10n.t(Rez.Strings.CachedData),
-        Graphics.FONT_XTINY,
-        Graphics.COLOR_YELLOW
+        dc.getHeight() - 22,
+        "...",
+        Graphics.FONT_MEDIUM,
+        Graphics.COLOR_LT_GRAY
       );
     }
   }
 
-  function getDisplayLines(dc as Graphics.Dc) as Lang.Array {
-    var key = AppState.detailBody;
-    if (!_linesCacheKey.equals(key)) {
-      _linesCacheKey = key;
-      AppState.detailLines = buildDisplayLines(dc, key);
-      if (AppState.scrollOffset >= AppState.detailLines.size()) {
-        AppState.scrollOffset = 0;
-      }
+  function drawBodyLine(dc as Graphics.Dc, text as String, y as Number) as Void {
+    var textX = DetailTextLayout.textXAt(dc, y);
+    var maxW = DetailTextLayout.maxWidthAt(dc, y);
+    RoundUi.drawClippedText(
+      dc,
+      textX,
+      y + _lineH / 2,
+      maxW,
+      _lineH,
+      text,
+      Graphics.FONT_XTINY,
+      Graphics.COLOR_WHITE,
+      0
+    );
+  }
+
+  function drawTitleBlock(dc as Graphics.Dc, maxW as Number) as Number {
+    if (AppState.detailTitle.length() == 0) {
+      return DetailUi.TITLE_TOP;
     }
+    var lineH = DetailTextLayout.titleLineHeight(dc);
+    var titleLines = RoundUi.wrapTextLines(
+      dc, AppState.detailTitle, Graphics.FONT_SMALL, maxW, 2
+    );
+    var y = DetailUi.TITLE_TOP;
+    dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+    var cx = RoundUi.centerX(dc);
+    for (var i = 0; i < titleLines.size(); i++) {
+      var line = titleLines[i];
+      if (line instanceof String) {
+        dc.drawText(
+          cx,
+          y,
+          Graphics.FONT_SMALL,
+          line as String,
+          Graphics.TEXT_JUSTIFY_CENTER
+        );
+      }
+      y += lineH;
+    }
+    return y + DetailUi.TITLE_BODY_GAP;
+  }
+
+  function getDisplayLines(dc as Graphics.Dc, bodyTop as Number) as Lang.Array {
+    var key = AppState.detailTitle + "\n" + AppState.detailBody + "\n" + bodyTop.toString();
+    if (key.equals(_linesKey) && AppState.detailLines.size() > 0) {
+      return AppState.detailLines;
+    }
+    _linesKey = key;
+    AppState.detailLines = DetailTextLayout.breakIntoVisualLines(dc, AppState.detailBody, bodyTop);
     return AppState.detailLines;
   }
 
-  (:typecheck(false))
-  function buildDisplayLines(dc as Graphics.Dc, text as String) as Lang.Array {
-    var out = [] as Lang.Array;
-    if (text.length() == 0) {
-      return out;
+  function scrollLine(delta as Number) as Void {
+    var lines = AppState.detailLines;
+    if (lines.size() == 0) {
+      return;
     }
-    var paragraphs = splitParagraphs(text);
-    for (var p = 0; p < paragraphs.size(); p++) {
-      var para = paragraphs[p];
-      if (!(para instanceof String)) {
-        continue;
-      }
-      var paraText = para as String;
-      if (paraText.length() == 0) {
-        continue;
-      }
-      var y = 68 + out.size() * (dc.getFontHeight(Graphics.FONT_XTINY) + 4);
-      var maxW = RoundUi.maxWidthAtY(dc, y);
-      var lineH = dc.getFontHeight(Graphics.FONT_XTINY);
-      var wrapped = Graphics.fitTextToArea(paraText, Graphics.FONT_XTINY, maxW, lineH * 8, false);
-      if (wrapped == null) {
-        continue;
-      }
-      if (wrapped instanceof Lang.Array) {
-        var arr = wrapped as Lang.Array;
-        for (var w = 0; w < arr.size(); w++) {
-          out.add(arr[w]);
-        }
-      } else if (wrapped instanceof String) {
-        out.add(wrapped);
-      }
+    var next = AppState.scrollOffset + delta;
+    if (next < 0) {
+      next = 0;
     }
-    return out;
-  }
-
-  function splitParagraphs(text as String) as Lang.Array {
-    var lines = [] as Lang.Array;
-    var cur = "";
-    var n = text.length();
-    for (var i = 0; i < n; i++) {
-      var ch = text.substring(i, i + 1);
-      if (ch.equals("\n")) {
-        lines.add(cur);
-        cur = "";
-      } else {
-        cur += ch;
-      }
+    if (next > _maxScrollOffset) {
+      next = _maxScrollOffset;
     }
-    lines.add(cur);
-    return lines;
+    if (next != AppState.scrollOffset) {
+      AppState.scrollOffset = next;
+      WatchUi.requestUpdate();
+    }
   }
 }
 
 class TrainingDetailDelegate extends WatchUi.BehaviorDelegate {
 
-  function initialize() {
+  var _view as TrainingDetailView;
+
+  function initialize(view as TrainingDetailView) {
     BehaviorDelegate.initialize();
+    _view = view;
     AppController.setScreen(AppController.SCREEN_DETAIL);
   }
 
   function onMenu() as Boolean {
-    MenuInput.undoSpuriousUpScroll(method(:undoUpScroll));
     return MenuInput.handleMenuBehavior();
   }
 
-  function undoUpScroll(_ as Lang.Object or Null) as Void {
-    scrollBy(1);
-  }
-
   function onKey(evt as WatchUi.KeyEvent) as Boolean {
-    return MenuInput.handleKey(evt);
+    if (MenuInput.handleKey(evt)) {
+      return true;
+    }
+    var key = evt.getKey();
+    if (key == WatchUi.KEY_DOWN) {
+      _view.scrollLine(1);
+      return true;
+    }
+    if (key == WatchUi.KEY_UP) {
+      _view.scrollLine(-1);
+      return true;
+    }
+    return false;
   }
 
   function onBack() as Boolean {
     return NavHelper.handleBackFromDetail();
   }
 
-  function onNextPage() as Boolean {
-    scrollBy(DetailUi.LINES_PER_PAGE);
-    return true;
-  }
-
-  function onPreviousPage() as Boolean {
-    MenuInput.markUpPress();
-    scrollBy(-DetailUi.LINES_PER_PAGE);
-    return true;
-  }
-
   function onUp() as Boolean {
-    MenuInput.markUpPress();
-    scrollBy(-1);
+    _view.scrollLine(-1);
     return true;
   }
 
   function onDown() as Boolean {
-    scrollBy(1);
+    _view.scrollLine(1);
     return true;
   }
 
-  function scrollBy(delta as Number) as Void {
-    var lines = AppState.detailLines;
-    if (lines.size() == 0) {
-      return;
-    }
-    var maxOffset = lines.size() - 1;
-    if (maxOffset < 0) {
-      maxOffset = 0;
-    }
-    var next = AppState.scrollOffset + delta;
-    if (next < 0) {
-      next = 0;
-    }
-    if (next > maxOffset) {
-      next = maxOffset;
-    }
-    AppState.scrollOffset = next;
-    WatchUi.requestUpdate();
+  function onPreviousPage() as Boolean {
+    _view.scrollLine(-1);
+    return true;
+  }
+
+  function onNextPage() as Boolean {
+    _view.scrollLine(1);
+    return true;
   }
 }

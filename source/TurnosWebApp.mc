@@ -22,7 +22,11 @@ class TurnosWebApp extends Application.AppBase {
         if (cur != null && cur instanceof Lang.Array) {
           var arr = cur as Lang.Array;
           if (arr.size() > 0 && arr[0] instanceof ConfigureView) {
-            AppController.openMainAfterLogin();
+            if (SessionStore.hasSession()) {
+              AppController.openMainAfterLogin();
+            } else {
+              AppController.loginFromConfigure();
+            }
           }
         }
       } catch (ex) {
@@ -32,6 +36,9 @@ class TurnosWebApp extends Application.AppBase {
 
   function getInitialView() {
     if (!Credentials.hasAll()) {
+      return [ new ConfigureView(), new ConfigureDelegate() ];
+    }
+    if (!SessionStore.hasSession()) {
       return [ new ConfigureView(), new ConfigureDelegate() ];
     }
     return [ new WorkoutsView(), new WorkoutsDelegate() ];

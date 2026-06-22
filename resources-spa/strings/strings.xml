@@ -7,14 +7,13 @@
   <string id="SettingPasswordTitle">Contraseña</string>
 
   <string id="ConfigureTitle">Configuración</string>
-  <string id="ConfigureHint">Configura la cuenta\nen el reloj o en\nGarmin Connect.</string>
+  <string id="ConfigureHint">Abrí el menú para configurar\ndominio, usuario y contraseña.</string>
   <string id="ConfigureDomain">Dominio</string>
   <string id="ConfigureUsername">Usuario</string>
   <string id="ConfigurePassword">Contraseña</string>
   <string id="ConfigureContinue">Continuar</string>
   <string id="ConfigureSet">Establecer</string>
   <string id="ConfigureDone">Listo</string>
-  <string id="InputHint">Arriba/Abajo: carácter\nStart: agregar\nAtrás: borrar\nMenú: guardar</string>
 
   <string id="LoadingLabel">Cargando...</string>
   <string id="WorkoutsTitle">Entrenamientos</string>
@@ -31,6 +30,7 @@
   <string id="ErrorLoginBadJson">Inicio: respuesta inválida</string>
   <string id="ErrorLoginFailed">Inicio fallido: $1$</string>
   <string id="ErrorLoginNoSession">Inicio: sin sesión</string>
+  <string id="ErrorNoSession">Sesión expirada. Abrí el menú y tocá Continuar.</string>
   <string id="ErrorNetwork">Error de red: $1$</string>
   <string id="ErrorDataHttp">Error de datos HTTP $1$</string>
   <string id="ErrorInvalidResponse">Respuesta inválida</string>

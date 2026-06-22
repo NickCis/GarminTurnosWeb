@@ -2,7 +2,7 @@ import Toybox.Lang;
 
 // Vertical slide between list rows (one row = one third of screen height).
 class SlotScrollAnimator {
-  const STEP = 10;
+  const STEP = 28;
 
   var _offsetY as Number = 0;
   var _targetY as Number = 0;

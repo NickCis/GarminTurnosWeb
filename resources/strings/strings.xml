@@ -7,14 +7,13 @@
   <string id="SettingPasswordTitle">Password</string>
 
   <string id="ConfigureTitle">Setup</string>
-  <string id="ConfigureHint">Set up your account\non the watch or in\nGarmin Connect.</string>
+  <string id="ConfigureHint">Open the menu to set\ndomain, user and password.</string>
   <string id="ConfigureDomain">Domain</string>
   <string id="ConfigureUsername">Username</string>
   <string id="ConfigurePassword">Password</string>
   <string id="ConfigureContinue">Continue</string>
   <string id="ConfigureSet">Set</string>
   <string id="ConfigureDone">Done</string>
-  <string id="InputHint">Up/Down: character\nStart: add\nBack: delete\nMenu: save</string>
 
   <string id="LoadingLabel">Loading...</string>
   <string id="WorkoutsTitle">Workouts</string>
@@ -31,6 +30,7 @@
   <string id="ErrorLoginBadJson">Login: invalid response</string>
   <string id="ErrorLoginFailed">Login failed: $1$</string>
   <string id="ErrorLoginNoSession">Login: no session</string>
+  <string id="ErrorNoSession">Session expired. Open the menu and tap Continue.</string>
   <string id="ErrorNetwork">Network error: $1$</string>
   <string id="ErrorDataHttp">Data error HTTP $1$</string>
   <string id="ErrorInvalidResponse">Invalid response</string>

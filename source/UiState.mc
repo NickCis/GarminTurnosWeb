@@ -56,7 +56,22 @@ module AppState {
   }
 
   function workoutLabel(item as Lang.Dictionary) as String {
-    return dictString(item, "detalle");
+    return HtmlUtil.cleanHtml(dictString(item, "detalle"));
+  }
+
+  function workoutsWithCleanLabels(source as Lang.Array) as Lang.Array {
+    var out = [] as Lang.Array;
+    for (var i = 0; i < source.size(); i++) {
+      var item = source[i];
+      if (item instanceof Lang.Dictionary) {
+        var d = item as Lang.Dictionary;
+        out.add({
+          "id" => dictString(d, "id"),
+          "detalle" => HtmlUtil.cleanHtml(dictString(d, "detalle"))
+        });
+      }
+    }
+    return out;
   }
 
   function trainingLabel(item as Lang.Dictionary) as String {

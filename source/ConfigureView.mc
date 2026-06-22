@@ -67,7 +67,11 @@ class ConfigureDelegate extends WatchUi.BehaviorDelegate {
 
   function onStart() as Boolean {
     if (Credentials.hasAll()) {
-      AppController.openMainAfterLogin();
+      if (SessionStore.hasSession()) {
+        AppController.openMainAfterLogin();
+      } else {
+        AppController.loginFromConfigure();
+      }
       return true;
     }
     openConfigureMenu();
@@ -138,16 +142,13 @@ class ConfigureMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
     var n = id as Number;
     if (n == 0) {
-      var domainView = new StringInputView(0);
-      WatchUi.pushView(domainView, new StringInputDelegate(domainView), WatchUi.SLIDE_LEFT);
+      CredentialFields.openPicker(CredentialFields.DOMAIN);
     } else if (n == 1) {
-      var userView = new StringInputView(1);
-      WatchUi.pushView(userView, new StringInputDelegate(userView), WatchUi.SLIDE_LEFT);
+      CredentialFields.openPicker(CredentialFields.USERNAME);
     } else if (n == 2) {
-      var passView = new StringInputView(2);
-      WatchUi.pushView(passView, new StringInputDelegate(passView), WatchUi.SLIDE_LEFT);
+      CredentialFields.openPicker(CredentialFields.PASSWORD);
     } else if (n == 3) {
-      AppController.openMainAfterLogin();
+      AppController.loginFromConfigure();
     }
   }
 }

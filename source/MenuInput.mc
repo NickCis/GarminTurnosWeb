@@ -39,7 +39,6 @@ module NavHelper {
   function handleBackFromList(listKind as Number) as Boolean {
     WatchUi.popView(WatchUi.SLIDE_RIGHT);
     if (listKind == LIST_TRAININGS) {
-      WatchUi.popView(WatchUi.SLIDE_RIGHT);
       AppController.setScreen(AppController.SCREEN_WORKOUTS);
     }
     return true;

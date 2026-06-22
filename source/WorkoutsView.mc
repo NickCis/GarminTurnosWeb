@@ -57,7 +57,7 @@ class WorkoutsDelegate extends WatchUi.BehaviorDelegate {
   function initialize() {
     BehaviorDelegate.initialize();
     AppController.setScreen(AppController.SCREEN_WORKOUTS);
-    AppController.flows().startWorkouts(true);
+    AppController.flows().startWorkouts(false);
   }
 
   function onMenu() as Boolean {
@@ -69,6 +69,32 @@ class WorkoutsDelegate extends WatchUi.BehaviorDelegate {
   }
 
   function onBack() as Boolean {
+    return false;
+  }
+}
+
+class WorkoutsBootstrapDelegate extends WatchUi.BehaviorDelegate {
+
+  function initialize() {
+    BehaviorDelegate.initialize();
+    AppController.setScreen(AppController.SCREEN_WORKOUTS);
+  }
+
+  function onMenu() as Boolean {
+    return MenuInput.handleMenuBehavior();
+  }
+
+  function onKey(evt as WatchUi.KeyEvent) as Boolean {
+    return MenuInput.handleKey(evt);
+  }
+
+  function onBack() as Boolean {
+    if (!SessionStore.hasSession()) {
+      UiState.setLoading(false);
+      UiState.resetError();
+      WatchUi.switchToView(new ConfigureView(), new ConfigureDelegate(), WatchUi.SLIDE_RIGHT);
+      return true;
+    }
     return false;
   }
 }
