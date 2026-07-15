@@ -5,60 +5,74 @@ module HtmlUtil {
     if (html == null || html.length() == 0) {
       return "";
     }
-    var s = html;
-    s = replaceAll(s, "<br/>", "\n");
-    s = replaceAll(s, "<br>", "\n");
-    s = replaceAll(s, "<br />", "\n");
-    s = replaceAll(s, "</p>", "\n");
-    s = replaceAll(s, "</P>", "\n");
-    s = removeComments(s);
-    s = stripTags(s);
+    var s = stripHtmlToText(html);
     s = decodeEntities(s);
     return normalizeLines(s);
   }
 
-  function removeComments(s as String) as String {
+  function stripHtmlToText(s as String) as String {
     var out = "";
-    var i = 0;
+    var pos = 0;
     var n = s.length();
-    while (i < n) {
-      if (i + 3 < n && s.substring(i, i + 4).equals("<!--")) {
-        var j = i + 4;
-        var found = false;
-        while (j + 2 < n) {
-          if (s.substring(j, j + 3).equals("-->")) {
-            i = j + 3;
-            found = true;
-            break;
-          }
-          j += 1;
-        }
-        if (!found) {
+    while (pos < n) {
+      var rel = s.substring(pos, n).find("<");
+      if (rel == null) {
+        out += s.substring(pos, n);
+        break;
+      }
+      var tagStart = pos + (rel as Number);
+      if (tagStart > pos) {
+        out += s.substring(pos, tagStart);
+      }
+      if (tagStart + 3 < n && s.substring(tagStart, tagStart + 4).equals("<!--")) {
+        var commentEnd = findFrom(s, "-->", tagStart + 4);
+        if (commentEnd == null) {
           break;
         }
-      } else {
-        out += s.substring(i, i + 1);
-        i += 1;
+        pos = (commentEnd as Number) + 3;
+        continue;
       }
+
+      var tagEnd = findFrom(s, ">", tagStart + 1);
+      if (tagEnd == null) {
+        break;
+      }
+      var tag = s.substring(tagStart, (tagEnd as Number) + 1);
+      if (isLineBreakTag(tag)) {
+        out += "\n";
+      }
+      pos = (tagEnd as Number) + 1;
     }
     return out;
   }
 
-  function stripTags(s as String) as String {
-    var out = "";
-    var inTag = false;
-    var n = s.length();
-    for (var i = 0; i < n; i++) {
-      var ch = s.substring(i, i + 1);
-      if (ch.equals("<")) {
-        inTag = true;
-      } else if (ch.equals(">")) {
-        inTag = false;
-      } else if (!inTag) {
-        out += ch;
-      }
+  function isLineBreakTag(tag as String) as Boolean {
+    if (tag.length() < 3) {
+      return false;
     }
-    return out;
+    return tag.equals("<br>") ||
+      tag.equals("<br/>") ||
+      tag.equals("<br />") ||
+      tag.equals("<BR>") ||
+      tag.equals("<BR/>") ||
+      tag.equals("<BR />") ||
+      tag.equals("</p>") ||
+      tag.equals("</P>") ||
+      tag.equals("</div>") ||
+      tag.equals("</DIV>") ||
+      tag.equals("</li>") ||
+      tag.equals("</LI>");
+  }
+
+  function findFrom(s as String, needle as String, start as Number) as Number or Null {
+    if (start >= s.length()) {
+      return null;
+    }
+    var rel = s.substring(start, s.length()).find(needle);
+    if (rel == null) {
+      return null;
+    }
+    return start + (rel as Number);
   }
 
   function decodeEntities(s as String) as String {
@@ -91,42 +105,46 @@ module HtmlUtil {
   }
 
   function normalizeLines(s as String) as String {
-    var lines = splitLines(s);
     var out = "";
-    for (var i = 0; i < lines.size(); i++) {
-      var line = trim(lines[i]);
+    var start = 0;
+    var n = s.length();
+    while (start <= n) {
+      var end = nextLineEnd(s, start);
+      var line = trim(s.substring(start, end));
       if (line.length() == 0) {
+        if (end >= n) {
+          break;
+        }
+        start = end + 1;
         continue;
+      } else if (!line.equals("-")) {
+        if (line.substring(0, 1).equals("-")) {
+          line = trim(line.substring(1, line.length()));
+        }
+        if (line.length() > 0) {
+          if (out.length() > 0) {
+            out += "\n";
+          }
+          out += line;
+        }
       }
-      if (line.equals("-")) {
-        continue;
+      if (end >= n) {
+        break;
       }
-      if (out.length() > 0) {
-        out += "\n";
-      }
-      if (line.substring(0, 1).equals("-")) {
-        line = trim(line.substring(1, line.length()));
-      }
-      out += line;
+      start = end + 1;
     }
     return out;
   }
 
-  function splitLines(s as String) as Lang.Array {
-    var lines = [] as Lang.Array;
-    var cur = "";
+  function nextLineEnd(s as String, start as Number) as Number {
     var n = s.length();
-    for (var i = 0; i < n; i++) {
+    for (var i = start; i < n; i++) {
       var ch = s.substring(i, i + 1);
       if (ch.equals("\n") || ch.equals("\r")) {
-        lines.add(cur);
-        cur = "";
-      } else {
-        cur += ch;
+        return i;
       }
     }
-    lines.add(cur);
-    return lines;
+    return n;
   }
 
   function trim(s as String) as String {

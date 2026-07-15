@@ -15,7 +15,7 @@
   <string id="ConfigureSet">Set</string>
   <string id="ConfigureDone">Done</string>
 
-  <string id="LoadingLabel">Loading...</string>
+  <string id="LoadingLabel">Loading</string>
   <string id="WorkoutsTitle">Workouts</string>
   <string id="TrainingsTitle">Training plan</string>
   <string id="DetailTitle">Detail</string>

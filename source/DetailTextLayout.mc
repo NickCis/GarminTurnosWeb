@@ -2,7 +2,7 @@ import Toybox.Graphics;
 import Toybox.Lang;
 
 module DetailUi {
-  const CHORD_INSET = 6;
+  const SIDE_MARGIN = 20;
   const TITLE_TOP = 36;
   const TITLE_BODY_GAP = 12;
   const SAFE_BOTTOM_Y = 52;
@@ -19,7 +19,7 @@ module DetailTextLayout {
   }
 
   function maxWidthAt(dc as Graphics.Dc, y as Number) as Number {
-    var w = RoundUi.maxWidthAtY(dc, y) - DetailUi.CHORD_INSET * 2;
+    var w = dc.getWidth() - DetailUi.SIDE_MARGIN * 2;
     if (w < 48) {
       w = 48;
     }
@@ -27,9 +27,7 @@ module DetailTextLayout {
   }
 
   function textXAt(dc as Graphics.Dc, y as Number) as Number {
-    var cx = RoundUi.centerX(dc);
-    var maxW = maxWidthAt(dc, y);
-    return cx - maxW / 2;
+    return DetailUi.SIDE_MARGIN;
   }
 
   function trimLeading(s as String) as String {

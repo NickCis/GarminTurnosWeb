@@ -3,13 +3,19 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 
 class WorkoutsView extends WatchUi.View {
+  var _loadingAnimation as LoadingAnimationController;
 
   function initialize() {
     View.initialize();
+    _loadingAnimation = new LoadingAnimationController();
   }
 
   function onShow() as Void {
     WatchUi.requestUpdate();
+  }
+
+  function onHide() as Void {
+    _loadingAnimation.stop(self);
   }
 
   function onUpdate(dc as Graphics.Dc) as Void {
@@ -22,8 +28,11 @@ class WorkoutsView extends WatchUi.View {
     if (UiState.loading) {
       var lv = new LoadingView();
       lv.onUpdate(dc);
+      _loadingAnimation.ensure(self, dc);
       return;
     }
+
+    _loadingAnimation.stop(self);
 
     if (UiState.error != null) {
       dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);

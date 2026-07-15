@@ -8,9 +8,15 @@ class TrainingDetailView extends WatchUi.View {
   var _bodyTop as Number = 68;
   var _lineH as Number = 14;
   var _maxScrollOffset as Number = 0;
+  var _loadingAnimation as LoadingAnimationController;
 
   function initialize() {
     View.initialize();
+    _loadingAnimation = new LoadingAnimationController();
+  }
+
+  function onHide() as Void {
+    _loadingAnimation.stop(self);
   }
 
   function onUpdate(dc as Graphics.Dc) as Void {
@@ -22,8 +28,11 @@ class TrainingDetailView extends WatchUi.View {
     if (UiState.loading) {
       var lv = new LoadingView();
       lv.onUpdate(dc);
+      _loadingAnimation.ensure(self, dc);
       return;
     }
+
+    _loadingAnimation.stop(self);
 
     if (UiState.error != null) {
       RoundUi.drawCenteredLine(
@@ -47,31 +56,19 @@ class TrainingDetailView extends WatchUi.View {
     }
 
     var start = AppState.scrollOffset;
-    var bodyBottom = dc.getHeight() - DetailUi.SAFE_BOTTOM_Y;
+    var bodyBottom = dc.getHeight();
     var idx = start;
-    var lastDrawn = start - 1;
 
     while (idx < lines.size()) {
       var lineY = _bodyTop + (idx - start) * _lineH;
-      if (lineY + _lineH > bodyBottom) {
+      if (lineY >= bodyBottom) {
         break;
       }
       var line = lines[idx];
       if (line instanceof String) {
         drawBodyLine(dc, line as String, lineY);
-        lastDrawn = idx;
       }
       idx += 1;
-    }
-
-    if (lastDrawn + 1 < lines.size() || start < _maxScrollOffset) {
-      RoundUi.drawCenteredLine(
-        dc,
-        dc.getHeight() - 22,
-        "...",
-        Graphics.FONT_MEDIUM,
-        Graphics.COLOR_LT_GRAY
-      );
     }
   }
 

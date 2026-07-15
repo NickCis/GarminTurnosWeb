@@ -1,0 +1,3 @@
+<resources>
+    <animation filename="loading-spinner.mmm" id="LoadingSpinner"/>
+</resources>

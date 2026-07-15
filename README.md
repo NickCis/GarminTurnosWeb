@@ -14,7 +14,7 @@ En el reloj configurarás **dominio**, **usuario** y **contraseña** (los mismos
 
 ### Pantallas y navegación
 
-1. **Configuración inicial** — Si no hay dominio, usuario y contraseña guardados, la app muestra un formulario para ingresarlos (también configurables desde Garmin Connect IQ en el teléfono).
+1. **Configuración inicial** — Si no hay dominio, usuario y contraseña guardados, la app permite ingresarlos en el reloj con el `TextPicker` nativo de Garmin (también configurables desde Garmin Connect IQ en el teléfono).
 2. **Lista de workouts** — Tras un login válido, se obtiene `panelmensajes` y se listan los elementos del array `w`. El usuario selecciona uno con el botón **Start/Stop** estándar.
 3. **Lista de entrenamientos** — Con el workout elegido, se llama a `listtraining` y se listan los entrenamientos. Nueva selección con **Start/Stop**.
 4. **Detalle del entrenamiento** — Se llama a `getplani` y se muestran `titulo` y `detalle` (HTML limpiado a texto legible).
@@ -89,6 +89,16 @@ Equivalente manual:
 monkeyc -f monkey.jungle -o TurnosWeb.prg -y private_key.der -d fenix7s -w
 ```
 
+## Regenerar animación de carga
+
+El loading usa `WatchUi.AnimationLayer` con un GIF fuente convertido a Monkey Motion. No edites los `.mm` a mano: se generan desde `resources/animations/loading-spinner.gif`.
+
+```bash
+make animations
+```
+
+Esto actualiza `resources/animations/loading-spinner.mmm` y los `.mm` correspondientes a `COMMON_DEVICES` en `Makefile`. `resources/animations/animations.xml` debe seguir apuntando al recurso `LoadingSpinner`.
+
 Empaquetado para la tienda Connect IQ:
 
 ```bash
@@ -115,7 +125,11 @@ En el simulador, configura **dominio**, **usuario** y **contraseña** en **Archi
 
 **Nota:** En reloj real las peticiones HTTPS suelen salir vía **Garmin Connect Mobile**; en el simulador el tráfico sale desde el equipo anfitrión.
 
-## Configurar la cuenta en el móvil
+## Configurar la cuenta
+
+En el reloj, abre el menú de configuración y completa **dominio**, **usuario** y **contraseña**. La entrada de texto usa el `TextPicker` nativo del dispositivo.
+
+También puedes hacerlo desde el móvil:
 
 Para introducir **dominio**, **usuario** y **contraseña** en el reloj, hazlo desde la app **Garmin Connect IQ** en el teléfono:
 

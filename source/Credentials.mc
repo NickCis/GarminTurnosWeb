@@ -61,9 +61,6 @@ module Credentials {
 
   function getStringProp(key as String) as String {
     var v = Properties.getValue(key);
-    if (v == null) {
-      return "";
-    }
     if (v instanceof String) {
       return v as String;
     }

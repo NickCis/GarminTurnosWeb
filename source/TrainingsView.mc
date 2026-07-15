@@ -3,9 +3,15 @@ import Toybox.Lang;
 import Toybox.WatchUi;
 
 class TrainingsView extends WatchUi.View {
+  var _loadingAnimation as LoadingAnimationController;
 
   function initialize() {
     View.initialize();
+    _loadingAnimation = new LoadingAnimationController();
+  }
+
+  function onHide() as Void {
+    _loadingAnimation.stop(self);
   }
 
   function onUpdate(dc as Graphics.Dc) as Void {
@@ -18,8 +24,11 @@ class TrainingsView extends WatchUi.View {
     if (UiState.loading) {
       var lv = new LoadingView();
       lv.onUpdate(dc);
+      _loadingAnimation.ensure(self, dc);
       return;
     }
+
+    _loadingAnimation.stop(self);
 
     if (UiState.error != null) {
       RoundUi.drawCenteredLine(dc, h / 2, UiState.error, Graphics.FONT_SMALL, Graphics.COLOR_RED);
