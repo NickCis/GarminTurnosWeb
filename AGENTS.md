@@ -10,5 +10,5 @@
 make animations
 ```
 
-- `resources-anim/animations/animations.xml` exposes `LoadingSpinner`; `LoadingAnimation.mc` uses it via `Rez.Drawables.LoadingSpinner`. On `fr55` (no Monkey Motion) the loader draws centered text only — animations are omitted via `monkey.jungle`.
+- `resources-anim/animations/animations.xml` exposes `LoadingSpinner`; `LoadingAnimation.mc` uses it via `Rez.Drawables.LoadingSpinner`. On `fr55` / `vivoactive3` (no Monkey Motion) the loader draws centered text only — animations are omitted via `monkey.jungle`.
 - Avoid tight `Timer.Timer` intervals that trigger Garmin simulator warnings; prefer `AnimationLayer` for loading animations.

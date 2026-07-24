@@ -5,9 +5,16 @@ MONKEYDO := $(SDK)/bin/monkeydo
 CONNECTIQ := $(SDK)/bin/connectiq
 
 DEVICE ?= fenix7s
-# Devices used to bake Monkey Motion mappings (must be installed locally).
-# Exclude fr55: 8-color MIP is unsupported by Monkey Motion.
-COMMON_DEVICES ?= fr245:fr245m:fr255:fr255m:fr255s:fr255sm:fr265:fr265s:fr745:fr945:fr945lte:fr955:fr965:fenix5plus:fenix5splus:fenix5xplus:fenix6:fenix6pro:fenix6s:fenix6spro:fenix6xpro:fenix7:fenix7s:fenix7x:fenix7pro:fenix7spro:fenix7xpro:epix2:epix2pro42mm:epix2pro47mm:epix2pro51mm:fenix843mm:fenix847mm:fenix8solar47mm:fenix8solar51mm:vivoactive3:vivoactive3m:vivoactive4:vivoactive4s:vivoactive5:venu:venusq:venusqm:venu2:venu2s:venu2plus:venusq2:venusq2m:venu3:venu3s
+# Devices that cannot include Monkey Motion resources (see monkey.jungle).
+NO_ANIM_DEVICES ?= fr55 vivoactive3
+# Bake MM mappings for every manifest product that is installed locally,
+# except NO_ANIM_DEVICES. Override with COMMON_DEVICES=... if needed.
+COMMON_DEVICES ?= $(shell python3 -c 'import os,re; \
+m=open("manifest.template.xml").read(); \
+prods=re.findall(r"<iq:product id=\"([^\"]+)\"", m); \
+skip=set("$(NO_ANIM_DEVICES)".split()); \
+inst=set(os.listdir(os.path.expanduser("~/.Garmin/ConnectIQ/Devices"))); \
+print(":".join(p for p in prods if p not in skip and p in inst))')
 KEY ?= private_key.der
 OUT ?= TurnosWeb.prg
 
