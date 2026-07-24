@@ -6,7 +6,7 @@ import Toybox.WatchUi;
 module ListUi {
   const STYLE_WORKOUTS = 0;
   const STYLE_TRAININGS = 1;
-  const TICK_MS = 33;
+  const TICK_MS = 50;
   const KIND_HEADER = "header";
   const KIND_ITEM = "item";
   const TEXT_LEFT = 42;

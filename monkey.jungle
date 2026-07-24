@@ -1,1 +1,7 @@
 project.manifest = manifest.xml
+
+# Monkey Motion lives outside base resources so fr55 can omit it.
+base.resourcePath = $(base.resourcePath);resources-anim
+
+# fr55: no animation resources (8-color MIP / no Monkey Motion mapping).
+fr55.resourcePath = resources;resources-fr55

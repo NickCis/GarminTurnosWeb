@@ -6,16 +6,20 @@ module DetailUi {
   const TITLE_TOP = 36;
   const TITLE_BODY_GAP = 12;
   const SAFE_BOTTOM_Y = 52;
+  // Body copy: FONT_TINY is the usual readable default on CIQ watches.
+  // FONT_XTINY is for secondary labels; FONT_SMALL matches titles/lists.
+  const BODY_FONT = Graphics.FONT_TINY;
+  const TITLE_FONT = Graphics.FONT_SMALL;
 }
 
 module DetailTextLayout {
 
   function lineHeight(dc as Graphics.Dc) as Number {
-    return dc.getFontHeight(Graphics.FONT_XTINY) + 6;
+    return dc.getFontHeight(DetailUi.BODY_FONT) + 6;
   }
 
   function titleLineHeight(dc as Graphics.Dc) as Number {
-    return dc.getFontHeight(Graphics.FONT_SMALL) + 2;
+    return dc.getFontHeight(DetailUi.TITLE_FONT) + 2;
   }
 
   function maxWidthAt(dc as Graphics.Dc, y as Number) as Number {
@@ -51,7 +55,7 @@ module DetailTextLayout {
     if (text.length() == 0) {
       return true;
     }
-    return dc.getTextWidthInPixels(text, Graphics.FONT_XTINY) <= maxW;
+    return dc.getTextWidthInPixels(text, DetailUi.BODY_FONT) <= maxW;
   }
 
   function splitWords(text as String) as Lang.Array {

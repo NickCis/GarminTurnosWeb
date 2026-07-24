@@ -8,6 +8,11 @@ class LoadingAnimationController {
   var _playing as Lang.Boolean = false;
 
   function ensure(view as WatchUi.View, dc as Graphics.Dc) as Void {
+    if (!(Rez.Drawables has :LoadingSpinner)) {
+      drawTextOnly(dc);
+      return;
+    }
+
     if (_layer == null) {
       _layer = new WatchUi.AnimationLayer(
         Rez.Drawables.LoadingSpinner,
@@ -31,6 +36,19 @@ class LoadingAnimationController {
     }
     drawTextLayer(dc);
     play();
+  }
+
+  function drawTextOnly(dc as Graphics.Dc) as Void {
+    dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+    dc.clear();
+    dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+    dc.drawText(
+      dc.getWidth() / 2,
+      dc.getHeight() / 2,
+      Graphics.FONT_SMALL,
+      L10n.t(Rez.Strings.LoadingLabel),
+      Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
+    );
   }
 
   function drawTextLayer(dc as Graphics.Dc) as Void {

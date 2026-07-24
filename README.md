@@ -77,13 +77,19 @@ export SDK=/ruta/al/connectiq-sdk-lin-...
 make build
 ```
 
-Compilar para el producto definido en `manifest.xml`:
+`manifest.xml` se genera desde `manifest.template.xml` con el app id según el canal:
 
 ```bash
+# Beta (id histórico, por defecto)
 make build
+
+# Producción (app id distinto en Connect IQ Store)
+make build VARIANT=prod
 ```
 
-Equivalente manual:
+La lista de productos está en `manifest.template.xml`. `minSdkVersion` es `3.1.0` (AnimationLayer). Íconos no-40×40: `make icons`. Animaciones: `make animations` (requiere los device packs instalados en el SDK Manager).
+
+Equivalente manual (tras generar el manifest):
 
 ```bash
 monkeyc -f monkey.jungle -o TurnosWeb.prg -y private_key.der -d fenix7s -w
@@ -91,18 +97,19 @@ monkeyc -f monkey.jungle -o TurnosWeb.prg -y private_key.der -d fenix7s -w
 
 ## Regenerar animación de carga
 
-El loading usa `WatchUi.AnimationLayer` con un GIF fuente convertido a Monkey Motion. No edites los `.mm` a mano: se generan desde `resources/animations/loading-spinner.gif`.
+El loading usa `WatchUi.AnimationLayer` con un GIF fuente convertido a Monkey Motion. No edites los `.mm` a mano: se generan desde `resources-anim/animations/loading-spinner.gif`. En `fr55` no hay animación: solo texto centrado.
 
 ```bash
 make animations
 ```
 
-Esto actualiza `resources/animations/loading-spinner.mmm` y los `.mm` correspondientes a `COMMON_DEVICES` en `Makefile`. `resources/animations/animations.xml` debe seguir apuntando al recurso `LoadingSpinner`.
+Esto actualiza `resources-anim/animations/loading-spinner.mmm` y los `.mm` correspondientes a `COMMON_DEVICES` en `Makefile`. `resources-anim/` se incluye vía `monkey.jungle` (excepto `fr55`).
 
 Empaquetado para la tienda Connect IQ:
 
 ```bash
-make release
+make release              # → TurnosWeb-beta.iq
+make release VARIANT=prod # → TurnosWeb-prod.iq
 ```
 
 ## Simulador

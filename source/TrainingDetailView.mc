@@ -82,7 +82,7 @@ class TrainingDetailView extends WatchUi.View {
       maxW,
       _lineH,
       text,
-      Graphics.FONT_XTINY,
+      DetailUi.BODY_FONT,
       Graphics.COLOR_WHITE,
       0
     );
@@ -94,7 +94,7 @@ class TrainingDetailView extends WatchUi.View {
     }
     var lineH = DetailTextLayout.titleLineHeight(dc);
     var titleLines = RoundUi.wrapTextLines(
-      dc, AppState.detailTitle, Graphics.FONT_SMALL, maxW, 2
+      dc, AppState.detailTitle, DetailUi.TITLE_FONT, maxW, 2
     );
     var y = DetailUi.TITLE_TOP;
     dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -105,7 +105,7 @@ class TrainingDetailView extends WatchUi.View {
         dc.drawText(
           cx,
           y,
-          Graphics.FONT_SMALL,
+          DetailUi.TITLE_FONT,
           line as String,
           Graphics.TEXT_JUSTIFY_CENTER
         );

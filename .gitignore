@@ -1,3 +1,6 @@
+# Generated from manifest.template.xml (VARIANT=beta|prod)
+manifest.xml
+
 # Connect IQ build output
 *.prg
 *.prg.debug.xml
